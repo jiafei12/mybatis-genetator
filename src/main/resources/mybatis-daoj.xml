@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<daoj>
+     <!--<dataSource>
+         <property name="jdbcUrl" value="jdbc:oracle:thin:@192.168.1.71:1521:orcl"/>
+         <property name="jdbcDriver" value="oracle.jdbc.driver.OracleDriver"/>
+         <property name="username" value="hexin_factoring"/>
+         <property name="password" value="hexin_factoring"/>
+     </dataSource>-->
+
+    <!--<dataSource>
+        <property name="jdbcUrl" value="jdbc:oracle:thin:@192.168.1.33:1521:absdb"/>
+        <property name="jdbcDriver" value="oracle.jdbc.driver.OracleDriver"/>
+        <property name="username" value="hexin"/>
+        <property name="password" value="hexin4905"/>
+    </dataSource>-->
+
+
+    <dataSource>
+        <property name="jdbcUrl" value="jdbc:sqlserver://localhost:1433;databaseName=acdb"/>
+        <property name="jdbcDriver" value="com.microsoft.sqlserver.jdbc.SQLServerDriver"/>
+        <property name="username" value="sa"/>
+        <property name="password" value="Anche123"/>
+    </dataSource>
+
+
+    <params>
+        <!-- 指定实体类基类, 默认为 BasicPo -->
+        <property name="basicEntity" value="com.shls.db.dao.BasicPo"/>
+
+        <!-- 指定DAO基类, 默认为 BasicDao -->
+        <property name="basicDao" value="com.shls.db.dao.BasicDao"/>
+
+        <!-- 设定生成后的实体类所在的包 -->
+        <property name="entityPackage" value="com.shls.db.po"/>
+
+        <!-- 设定生成后的DAO接口所在包 -->
+        <property name="daoPackage" value="com.shls.db.dao.product"/>
+
+        <!-- 设定代码生成的输出目录, 支持相对路径或绝对路径 -->
+        <property name="outputDir" value="generated-files"/>
+
+        <!-- 需要合并的Mapper文件所在目录, 支持相对路径或绝对路径 -->
+        <!--<property name="mergeFileDir" value="merge-files"></property>-->
+        <property name="mergeFileDir" value="/Users/song/IdeaProjects/abs_project_management/src/main/java/com/shls/db/mapping/product"></property>
+
+
+        <!-- 要生成的方法，多个方法用逗号(',')分隔 -->
+        <!-- 可选值有：insert,update,updateIgnoreNull,delete,deleteBatch,deleteById,deleteAll,deleteBy,count,findById,find -->
+        <property name="methods"
+                  value="insert,update,updateIgnoreNull,delete,deleteById,deleteAll,deleteBy,count,findById,find"/>
+
+
+
+        <!--PO被忽略的字段将不会出现在实体类的字段列表中，也不会生成相应的getter、setter方法，但toString方法仍然会出现该字段-->
+        <property name="poIgnoreFields" value="id,status,createdAt,updatedAt,isDelete"/>
+
+        <!-- 要生成的表名, 多个表可以逗号(',')分隔。 注意，数据库表必须指定了主键列。 -->
+        <!-- 注意：ORACLE数据库表名是【大写】 -->
+        <property name="tables" value="ac_admin_log" create-sequence="true"/>
+
+    </params>
+
+</daoj>
+
+
+
