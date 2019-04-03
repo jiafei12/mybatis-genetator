@@ -44,16 +44,13 @@
         <!--<property name="mergeFileDir" value="merge-files"></property>-->
         <property name="mergeFileDir" value="/Users/song/IdeaProjects/abs_project_management/src/main/java/com/shls/db/mapping/product"></property>
 
-
         <!-- 要生成的方法，多个方法用逗号(',')分隔 -->
         <!-- 可选值有：insert,update,updateIgnoreNull,delete,deleteBatch,deleteById,deleteAll,deleteBy,count,findById,find -->
         <property name="methods"
                   value="insert,update,updateIgnoreNull,delete,deleteById,deleteAll,deleteBy,count,findById,find"/>
 
-
-
         <!--PO被忽略的字段将不会出现在实体类的字段列表中，也不会生成相应的getter、setter方法，但toString方法仍然会出现该字段-->
-        <property name="poIgnoreFields" value="id,status,createdAt,updatedAt,isDelete"/>
+        <!--<property name="poIgnoreFields" value="id,status,createdAt,updatedAt,isDelete"/>-->
 
         <!-- 要生成的表名, 多个表可以逗号(',')分隔。 注意，数据库表必须指定了主键列。 -->
         <!-- 注意：ORACLE数据库表名是【大写】 -->

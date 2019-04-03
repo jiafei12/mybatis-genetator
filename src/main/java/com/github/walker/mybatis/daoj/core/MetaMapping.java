@@ -13,28 +13,27 @@ import java.util.Set;
 /**
  * 元数据映射类
  */
-class MetaMapping
-{
+class MetaMapping {
     private Logger log = LoggerFactory.getLogger(this.getClass());
 
-    //表名
+    /**
+     * 表名
+     */
     private String tableName;
 
-    //表的各列及元数据
+    /**
+     * 表的各列以及元数据
+     */
     private Map<String, MetaDataDescription> fieldsMetaMap = new LinkedHashMap<String, MetaDataDescription>();
     private String sequenceName;
 
 
-    protected MetaMapping(String tableName)
-    {
-        try
-        {
+    private MetaMapping(String tableName) {
+        try {
             this.tableName = tableName;
             this.parseMetaData();
             this.createTableNameSequence();
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -44,8 +43,7 @@ class MetaMapping
      *
      * @return
      */
-    protected Map<String, MetaDataDescription> getFieldsMetaMap()
-    {
+    protected Map<String, MetaDataDescription> getFieldsMetaMap() {
         return this.fieldsMetaMap;
     }
 
@@ -54,8 +52,7 @@ class MetaMapping
      *
      * @return
      */
-    protected String getTableNameSequence()
-    {
+    protected String getTableNameSequence() {
         return sequenceName;
     }
 
@@ -65,41 +62,32 @@ class MetaMapping
      *
      * @return
      */
-    private String createTableNameSequence()
-    {
+    private String createTableNameSequence() {
         Connection conn = null;
         ResultSet rs = null;
         PreparedStatement stmt = null;
-        try
-        {
+        try {
             sequenceName = tableName.toUpperCase() + "_SEQ";
             conn = DBResource.getConnection();
             String sql = "SELECT COUNT(1) FROM  user_sequences WHERE SEQUENCE_NAME = '" + sequenceName + "'";
             stmt = conn.prepareStatement(sql);
             rs = stmt.executeQuery();
             int count = 0;
-            while (rs.next())
-            {
+            while (rs.next()) {
                 count = rs.getInt(1);
             }
 
             sql = "CREATE SEQUENCE " + sequenceName + " start WITH 1 increment BY 1 nomaxvalue nominvalue nocycle nocache";
             log.debug("准备创建序列: " + sql);
 
-            if (count > 0)
-            {
+            if (count > 0) {
                 log.debug("序列 " + sequenceName + "已存在");
-            }
-            else
-            {
+            } else {
                 log.debug("创建序列 " + sequenceName);
-                if (sequenceName.length() > 30)
-                {
+                if (sequenceName.length() > 30) {
                     sequenceName = "序列名过长";
                     log.debug("序列名过长, 跳过" + sequenceName);
-                }
-                else
-                {
+                } else {
                     stmt = conn.prepareStatement(sql);
                     stmt.executeQuery();
                     conn.commit();
@@ -107,31 +95,20 @@ class MetaMapping
             }
 
             return sequenceName;
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
-        }
-        finally
-        {
-            try
-            {
-                if (rs != null)
-                {
+        } finally {
+            try {
+                if (rs != null) {
                     rs.close();
                 }
-                if (stmt != null)
-                {
+                if (stmt != null) {
                     stmt.close();
                 }
                 DBResource.freeConnection(conn);
-            }
-            catch (SQLException e)
-            {
+            } catch (SQLException e) {
                 log.error(e.getMessage(), e);
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -141,107 +118,69 @@ class MetaMapping
 
     /**
      * 取得表的元数据，即取得各列名及类型
+     * <p>
+     * 列名及其列类型：LinkedHashMap<String, MyMetaData> map
      *
-     * @return 列名及其列类型：LinkedHashMap<String, MyMetaData> map
-     * @throws Exception
+     * @throws Exception 数据库异常
      */
-    protected void parseMetaData()
-            throws Exception
-    {
-
+    protected void parseMetaData() throws Exception {
         Connection conn = null;
         PreparedStatement stmt = null;
         ResultSet rs = null;
-        try
-        {
+        try {
             conn = DBResource.getConnection();
-
             //定位主键字段
             Set<String> keySet = new HashSet<String>();
-
             rs = conn.getMetaData().getPrimaryKeys(conn.getCatalog(), null, tableName);
-            for (; rs.next(); )
-            {
-                String pk = rs.getString("COLUMN_NAME")/*.toLowerCase()*/;
+            for (; rs.next(); ) {
+                String pk = rs.getString("COLUMN_NAME");
                 keySet.add(pk);
             }
             rs.close();
-
             //获取列元数据
             String sql = "SELECT * FROM " + tableName + " WHERE 1=2";
             stmt = conn.prepareStatement(sql);
             rs = stmt.executeQuery();
-
             ResultSetMetaData rsmd = rs.getMetaData();
-            for (int i = 1; i <= rsmd.getColumnCount(); i++)
-            {
-                String colName = rsmd.getColumnName(i)/*.toLowerCase()*/;
-//                log.debug(colName + ":------ " + rsmd.getColumnType(i) + "("
-//                        + rsmd.getColumnTypeName(i) + "), " + rsmd.getPrecision(i) + "(精确度), " + rsmd.getScale(i) + "(小数点后位数)");
-
+            for (int i = 1; i <= rsmd.getColumnCount(); i++) {
+                String colName = rsmd.getColumnName(i);
                 MetaDataDescription md = new MetaDataDescription();
                 md.setColName(colName);
 
                 // 对于Oracle的DATE数据类型，ResultSetMetaData.getColumnType返回值为93（即 TIMESTAMP）, 可能是一个BUG？
-                if (rsmd.getColumnTypeName(i).equals("DATE"))
-                {
+                if (rsmd.getColumnTypeName(i).equals("DATE")) {
                     md.setColType(Types.DATE);
-                }
-                else
-                {
+                } else {
                     md.setColType(rsmd.getColumnType(i));
                 }
                 md.setPrecision(rsmd.getPrecision(i));
                 md.setScale(rsmd.getScale(i));
-
-
-                if (keySet.contains(colName))
-                {
+                if (keySet.contains(colName)) {
                     md.setPk(true);
-                }
-                else
-                {
+                } else {
                     md.setPk(false);
                 }
-
                 // 转为驼峰命名
-                String fileldName = MappingUtil.getFieldName(colName);
-
-                // 表中字段名直接对应属性名
-                //String fileldName = colName;
-
-                md.setFieldName(fileldName);
-
+                String fieldName = MappingUtil.getFieldName(colName);
+                md.setFieldName(fieldName);
                 //把列类型映射为类属性类型
                 md.setFieldType(reflectToFieldType(md.getColType(), md.getScale(), md.getPrecision()));
-
                 fieldsMetaMap.put(colName, md);
             }
-
             // 设置各个字段的注释
             setFieldsComment(fieldsMetaMap, conn);
-
-        }
-        catch (SQLException e)
-        {
+        } catch (SQLException e) {
             log.error(e.getMessage(), e);
-        }
-        finally
-        {
-            try
-            {
-                if (rs != null)
-                {
+        } finally {
+            try {
+                if (rs != null) {
                     rs.close();
                 }
-                if (stmt != null)
-                {
+                if (stmt != null) {
                     stmt.close();
                 }
                 DBResource.freeConnection(conn);
-            }
-            catch (SQLException e)
-            {
+            } catch (SQLException e) {
                 log.error(e.getMessage(), e);
             }
         }
@@ -250,23 +189,18 @@ class MetaMapping
     /**
      * 设置各个字段的注释
      *
-     * @param colNameMetaMap
-     * @param conn
-     * @throws SQLException
+     * @param colNameMetaMap 列名称
+     * @param conn           数据库连接
+     * @throws SQLException SQL异常
      */
-    private void setFieldsComment(Map<String, MetaDataDescription> colNameMetaMap, Connection conn) throws SQLException
-    {
+    private void setFieldsComment(Map<String, MetaDataDescription> colNameMetaMap, Connection conn) throws SQLException {
         DatabaseMetaData dbmd = conn.getMetaData();
         ResultSet ret = dbmd.getColumns(null, "%", tableName, "%");
-        while (ret.next())
-        {
+        while (ret.next()) {
             String columnName = ret.getString("COLUMN_NAME");
             String comment = ret.getString("REMARKS");
-
-            if (comment != null && !comment.equals("null"))
-            {
-                if (colNameMetaMap.containsKey(columnName))
-                {
+            if (comment != null && !"null".equals(comment)) {
+                if (colNameMetaMap.containsKey(columnName)) {
                     colNameMetaMap.get(columnName).setComment(comment);
                 }
             }
@@ -276,14 +210,11 @@ class MetaMapping
     /**
      * 把列类型映射为类属性类型
      *
-     * @param colType
-     * @return
-     * @throws Exception
-     */
-    private Class reflectToFieldType(int colType, int scale, int precision) throws Exception
-    {
-        switch (colType)
-        {
+     * @param colType 数据库表的列数据类型
+     * @return 对应的java数据类型
+     **/
+    private Class reflectToFieldType(int colType, int scale, int precision) {
+        switch (colType) {
             case Types.BIT:
                 return Boolean.class;
 
@@ -303,44 +234,25 @@ class MetaMapping
             case Types.DOUBLE:
                 return Double.class;
             case Types.NUMERIC:
-                if (scale == 0)
-                {
-                    /*if (precision == 1)
-                    {
-                        return Boolean.class;
-                    }
-                    else */
-                    if (precision == 38)
-                    {
+                if (scale == 0) {
+                    if (precision == 38) {
                         return Long.class;
-                    }
-                    else if (precision == 1)
-                    {
+                    } else if (precision == 1) {
                         return Boolean.class;
-                    }
-                    else
-                    {
+                    } else {
                         return Integer.class;
                     }
-                }
-                else
-                {
-                    if (scale < 16)
-                    {
+                } else {
+                    if (scale < 16) {
                         return Double.class;
-                    }
-                    else
-                    {
+                    } else {
                         return java.math.BigDecimal.class;
                     }
                 }
             case Types.DECIMAL:
-                if (scale == 0)
-                {
+                if (scale == 0) {
                     return Long.class;
-                }
-                else
-                {
+                } else {
                     return java.math.BigDecimal.class;
                 }
             case Types.CHAR:
@@ -368,13 +280,13 @@ class MetaMapping
                 return String.class;
             case Types.CLOB:
                 return String.class;
-        }
 
-        throw new Exception("不能识别的列类型:" + colType);
+            default:
+                return String.class;
+        }
     }
 
-    public static void main(String[] args)
-    {
+    public static void main(String[] args) {
         System.out.println(Byte[].class.getName());
         System.out.println(Byte[].class.getSimpleName());
 

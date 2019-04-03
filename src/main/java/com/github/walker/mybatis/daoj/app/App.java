@@ -5,7 +5,7 @@ import com.github.walker.mybatis.daoj.core.Generator;
 import java.io.*;
 
 /**
- * Created by song on 15/11/2017.
+ * @author amber
  */
 public class App
 {
